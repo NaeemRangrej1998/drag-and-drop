@@ -1,0 +1,117 @@
+// import React, { useState } from "react";
+// import { ListGroup } from "react-bootstrap";
+// import "./App.css";
+// import Player from "./componenets/Player";
+// import { useDrop } from "react-dnd";
+//
+// function App() {
+//     const [players, setPlayers] = useState([
+//         { name: "Player 1" },
+//         { name: "Player 2" },
+//         { name: "Player 3" },
+//         { name: "Player 4" },
+//         { name: "Player 5" },
+//         { name: "Player 6" },
+//     ]);
+//
+//     const [team, setTeam] = useState([]);
+//
+//     const [{ isOver }, addToTeamRef] = useDrop({
+//         accept: "player",
+//         drop: (item) => movePlayerToTeam(item),
+//         collect: (monitor) => ({ isOver: !!monitor.isOver() }),
+//     });
+//
+//     const [{ isOver: isPlayerOver }, removeFromTeamRef] = useDrop({
+//         accept: "team",
+//         drop: (item) => removePlayerFromTeam(item),
+//         collect: (monitor) => ({ isOver: !!monitor.isOver() }),
+//     });
+//
+//     const movePlayerToTeam = (item) => {
+//         console.log(item);
+//         setPlayers((prev) => prev.filter((p) => p.name !== item.name)); // Remove from players
+//         setTeam((prev) => (prev.some((p) => p.name === item.name) ? prev : [...prev, item])); // Prevent duplicates
+//     };
+//
+//     const removePlayerFromTeam = (item) => {
+//         setTeam((prev) => prev.filter((p) => p.name !== item.name)); // Remove from team
+//         setPlayers((prev) => (prev.some((p) => p.name === item.name) ? prev : [...prev, item])); // Prevent duplicates
+//     };
+//
+//
+//     return (
+//         <div className="main_div">
+//             <div>
+//                 <h4>Available Players</h4>
+//                 <ListGroup ref={removeFromTeamRef}>
+//                     {players.map((e, i) => (
+//                         <Player key={e.name} item={e} type="player" index={i} onDropPlayer={movePlayerToTeam} />
+//                     ))}
+//                 </ListGroup>
+//             </div>
+//             <div>
+//                 <h4>Team</h4>
+//                 <ListGroup ref={addToTeamRef} style={{ background: isOver ? "lightblue" : "white" }}>
+//                     {team.length === 0 ? <p>Drop players here</p> : null}
+//                     {team.map((e, i) => (
+//                         <Player key={e.name} item={e} type="team" index={i} onDropPlayer={removePlayerFromTeam} />
+//                     ))}
+//                 </ListGroup>
+//             </div>
+//         </div>
+//     );
+// }
+//
+// export default App;
+
+import React, { useState } from "react";
+import Column from "./DragAndDrop/Column";
+import MovableItem from "./DragAndDrop/MovableItem";
+import { COLUMN_NAMES } from "./dragAndDrop/constants";
+import { tasks } from "./dragAndDrop/task";
+import "./assets/styles/App.css";
+const App = () => {
+    const [items, setItems] = useState(tasks);
+
+    const moveCardHandler = (dragIndex, hoverIndex) => {
+        const dragItem = items[dragIndex];
+
+        if (dragItem) {
+            setItems((prevState) => {
+                const copiedState = [...prevState];
+                copiedState.splice(hoverIndex, 1, dragItem);
+                copiedState.splice(dragIndex, 1, prevState[hoverIndex]);
+                return copiedState;
+            });
+        }
+    };
+
+    const returnItemsForColumn = (columnName) => {
+        return items
+            .filter((item) => item.column === columnName)
+            .map((item, index) => (
+                <MovableItem
+                    key={item.id}
+                    name={item.name}
+                    currentColumnName={item.column}
+                    setItems={setItems}
+                    index={index}
+                    moveCardHandler={moveCardHandler}
+                />
+            ));
+    };
+    return (
+            <div className="container">
+                {Object.values(COLUMN_NAMES).map((column) => (
+                    <Column key={column} title={column} className="column">
+                        {returnItemsForColumn(column)}
+                    </Column>
+                ))}
+
+            </div>
+    );
+};
+
+export default App;
+
